@@ -1,5 +1,4 @@
 package com.sri.weatherinfo
-
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
@@ -11,7 +10,6 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.Menu
@@ -21,23 +19,23 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.motion.widget.Key.VISIBILITY
 import androidx.core.content.ContextCompat
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.sri.weatherinfo.databinding.ActivityMainBinding
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
     var binding: ActivityMainBinding? = null
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-
+    var alertDialog:AlertDialog?=null
     private val requestPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -88,14 +86,29 @@ class MainActivity : AppCompatActivity() {
         ) == PackageManager.PERMISSION_GRANTED;
     }
 
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("MainActivity","on resume called")
+        if(alertDialog!=null){
+            Log.d("MainActivity","alert dialog dismissed")
+            alertDialog!!.dismiss()
+        }
+        if(latitude==0.0 && longitude==0.0)
+            checkPermissionAndRequestLocationData()
+    }
+
     private fun checkPermissionAndRequestLocationData() {
         if (!isLocationEnabled()) {
-            AlertDialog.Builder(this)
+            alertDialog= AlertDialog.Builder(this)
                 .setMessage("Your location provider is turned off. Please turn it on for this app to work.")
-                .setPositiveButton("Turn On") { d, j ->
+                .setPositiveButton("Turn On") { d, _ ->
+                  //  d.cancel()
                     val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    alertDialog!!.dismiss()
                     startActivity(intent)
                 }.show()
+
         } else {
             if (!checkIfLocationPermissionsGranted()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && shouldShowRequestPermissionRationale(
