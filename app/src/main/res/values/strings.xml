@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">WeatherInfo</string>
+    <string name="refresh">Refresh</string>
+    <string name="loading">Loading....</string>
+</resources>
